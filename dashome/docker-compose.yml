@@ -1,0 +1,18 @@
+services:
+  dashhome:
+    image: lissy93/dashy:latest
+    container_name: dashome
+    restart: unless-stopped
+    ports:
+      - "${DASH_PORT:-1080}:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+    volumes:
+      - ${DASH_CONFIG_PATH}:/app/public/conf.yml:ro
+    networks:
+      - dashnet
+
+networks:
+  dashnet:
+    driver: bridge
