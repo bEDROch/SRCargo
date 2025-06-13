@@ -1,0 +1,16 @@
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: db_01
+    restart: unless-stopped
+    env_file:
+      - ../env/db_01.env
+    volumes:
+      - ~/SRCargo/portainer/volumes/db/01:/var/lib/mysql
+    networks:
+      - net_db_01
+
+networks:
+  internal_net:
+    name: net_db_01
+    driver: bridge
