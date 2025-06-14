@@ -1,11 +1,12 @@
 services:
   wordpress:
     image: wordpress:latest
+    container_name: wordpress
     restart: unless-stopped
     ports:
       - "${WP_PORT:-8080}:80"
     environment:
-      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_HOST: db_uno
       WORDPRESS_DB_NAME: ${WP_DB_NAME}
       WORDPRESS_DB_USER: ${WP_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WP_DB_PASS}
@@ -13,20 +14,10 @@ services:
       - ${WP_HTML_PATH}:/var/www/html
     networks:
       - wpnet
-
-  db:
-    image: mariadb:latest
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: ${WP_DB_NAME}
-      MYSQL_USER: ${WP_DB_USER}
-      MYSQL_PASSWORD: ${WP_DB_PASS}
-      MYSQL_ROOT_PASSWORD: ${WP_DB_ROOT}
-    volumes:
-      - ${WP_DB_PATH}:/var/lib/mysql
-    networks:
-      - wpnet
+      - net_db_01  # Connessione al DB centralizzato
 
 networks:
   wpnet:
     driver: bridge
+  net_db_01:
+    external: true
