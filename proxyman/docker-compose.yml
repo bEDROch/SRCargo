@@ -1,0 +1,20 @@
+services:
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: proxyman
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    environment:
+      DB_SQLITE_FILE: "/data/database.sqlite"
+    volumes:
+      - ${NPM_DATA_PATH}:/data
+      - ${NPM_LETSENCRYPT_PATH}:/etc/letsencrypt
+    networks:
+      - npmnet
+
+networks:
+  npmnet:
+    driver: bridge
