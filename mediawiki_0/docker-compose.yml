@@ -14,7 +14,7 @@ services:
       - wiki-net
 
   mediawiki:
-    image: mediawiki:stable-fpm-alpine
+    image: mediawiki:latest-alpine
     container_name: wiki-zero
     restart: always
     ports:
