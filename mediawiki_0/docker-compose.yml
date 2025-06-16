@@ -25,7 +25,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ${PATH_DATA}:/var/www/html
+      - ${PATH_DATA}/html:/var/www/html
     depends_on:
       - database
     networks:
