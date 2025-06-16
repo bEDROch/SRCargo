@@ -11,7 +11,7 @@ services:
     volumes:
       - ${PATH_DATA}/db:/var/lib/mysql
     networks:
-      - ${NET:-wiki-net}
+      - default_net
 
   mediawiki:
     image: mediawiki:latest
@@ -29,7 +29,7 @@ services:
     depends_on:
       - database
     networks:
-      - ${NET:-wiki-net}
+      - default_net
 
 networks:
   default_net:
