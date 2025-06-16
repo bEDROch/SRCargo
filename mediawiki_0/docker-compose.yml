@@ -1,7 +1,7 @@
 services:
   database:
     image: mariadb:latest
-    container_name: wiki-zero-db
+    container_name: ${NAME_CONTAINER_DB:-wiki-zero-db}
     restart: always
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -9,27 +9,27 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_RANDOM_ROOT_PASSWORD: yes
     volumes:
-      - /home/pio/.local/share/mio/srv/src/cargo/portainer/volumes/mediawiki_0/db:/var/lib/mysql
+      - ${PATH_DATA}/db:/var/lib/mysql
     networks:
-      - wiki-net
+      - ${NET:-wiki-net}
 
   mediawiki:
     image: mediawiki:latest
-    container_name: wiki-zero
+    container_name: ${NAME_CONTAINER:-wiki-zero}
     restart: always
     ports:
-      - "1010:80"
+      - "${PORTA:-1010}:80"
     environment:
       DB_SERVER: database
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - /home/pio/.local/share/mio/srv/src/cargo/portainer/volumes/mediawiki_0:/var/www/html
+      - ${PATH_DATA}:/var/www/html
     depends_on:
       - database
     networks:
-      - wiki-net
+      - ${NET:-wiki-net}
 
 networks:
-  wiki-net:
+  ${NET:-wiki-net}:
