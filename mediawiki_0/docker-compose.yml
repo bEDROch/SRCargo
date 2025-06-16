@@ -25,8 +25,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - /home/pio/.local/share/mio/srv/src/cargo/portainer/volumes/mediawiki_0/images:/var/www/html/images
-      - /home/pio/.local/share/mio/srv/src/cargo/portainer/volumes/mediawiki_0/LocalSettings.php:/var/www/html/LocalSettings.php
+      - /home/pio/.local/share/mio/srv/src/cargo/portainer/volumes/mediawiki_0:/var/www/html
     depends_on:
       - database
     networks:
