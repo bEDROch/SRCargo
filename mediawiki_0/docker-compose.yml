@@ -32,4 +32,5 @@ services:
       - ${NET:-wiki-net}
 
 networks:
-  ${NET:-wiki-net}:
+  default_net:
+    name: ${NET:-wiki-net}
