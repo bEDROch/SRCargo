@@ -1,7 +1,7 @@
 services:
   database:
     image: mariadb:latest
-    container_name: ${NAME_CONTAINER_DB:-wiki-zero-db}
+    container_name: ${NAME_CONTAINER_DB}
     restart: always
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -15,10 +15,10 @@ services:
 
   mediawiki:
     image: mediawiki:latest
-    container_name: ${NAME_CONTAINER:-wiki-zero}
+    container_name: ${NAME_CONTAINER}
     restart: always
     ports:
-      - "${PORTA:-1010}:80"
+      - "${PORTA}:80"
     environment:
       DB_SERVER: database
       DB_NAME: ${DB_NAME}
@@ -33,4 +33,4 @@ services:
 
 networks:
   default_net:
-    name: ${NET:-wiki-net}
+    name: ${NET}
