@@ -19,7 +19,7 @@ services:
 
   db:
     image: mariadb:10.11
-    container_name: wordpress_db
+    container_name: db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: wp_db
