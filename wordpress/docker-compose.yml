@@ -11,7 +11,7 @@ services:
       WORDPRESS_DB_USER: ${WP_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WP_DB_PASS}
     volumes:
-      - ${WP_PATH}/html:/var/www/html
+      - ${WP_PATH_HTML}:/var/www/html
     networks:
       - wpnet
     depends_on:
@@ -27,7 +27,7 @@ services:
       MYSQL_PASSWORD: ${WP_DB_PASS}
       MYSQL_ROOT_PASSWORD: ${WP_DB_ROOT}
     volumes:
-      - /srv/cargo/portainer/wordpress/db:/var/lib/mysql
+      - ${WP_PATH}/db:/var/lib/mysql
     networks:
       - wpnet
 
