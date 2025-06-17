@@ -1,6 +1,6 @@
 services:
   wiki:
-    image: mediawiki:1.39
+    image: mediawiki:latest
     container_name: mediawiki
     restart: unless-stopped
     ports:
@@ -12,7 +12,7 @@ services:
       MEDIAWIKI_DB_USER: ${MW_DB_USER}
       MEDIAWIKI_DB_PASSWORD: ${MW_DB_PASS}
     volumes:
-      - ${MW_HTML_PATH}:/var/www/html
+      - ${MW_PATH}:/var/www/html
     networks:
       - wikinet
     depends_on:
