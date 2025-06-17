@@ -14,7 +14,7 @@ services:
     volumes:
       - ${MW_HTML_PATH}:/var/www/html
     networks:
-      - mwnet
+      - wikinet
     depends_on:
       - db
 
@@ -30,8 +30,8 @@ services:
     volumes:
       - ${MW_DB_PATH}:/var/lib/mysql
     networks:
-      - mwnet
+      - wikinet
 
 networks:
-  mwnet:
+  wikinet:
     driver: bridge
