@@ -25,6 +25,10 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
     volumes:
+      - ${PATH_DATA}/images:/var/www/html/images
+      - ${PATH_DATA}/LocalSettings.php:/var/www/html/LocalSettings.php
+      - ${PATH_DATA}/skins:/var/www/html/skins
+      - ${PATH_DATA}/extensions:/var/www/html/extensions
       - ${PATH_DATA}/html:/var/www/html
     depends_on:
       - database
