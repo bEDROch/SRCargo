@@ -11,7 +11,7 @@ services:
       WORDPRESS_DB_USER: ${WP_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WP_DB_PASS}
     volumes:
-      - ${WP_PATH_HTML}:/var/www/html
+      - ${WP_HTML_PATH}:/var/www/html
     networks:
       - wpnet
     depends_on:
