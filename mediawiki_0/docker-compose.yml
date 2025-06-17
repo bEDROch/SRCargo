@@ -11,7 +11,7 @@ services:
       MEDIAWIKI_DB_NAME: ${MW_DB_NAME}
       MEDIAWIKI_DB_USER: ${MW_DB_USER}
       MEDIAWIKI_DB_PASSWORD: ${MW_DB_PASS}
-    volumes:
+    #volumes:
       #- ${MW_HTML_PATH}:/var/www/html
     networks:
       - wikinet
