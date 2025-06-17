@@ -1,6 +1,6 @@
 services:
   wordpress:
-    image: wordpress:latest
+    image: wordpress:6.5.3-apache
     container_name: wordpress
     restart: unless-stopped
     ports:
@@ -22,16 +22,15 @@ services:
     container_name: db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: wp_db
+      MYSQL_DATABASE: ${WP_DB_NAME}
       MYSQL_USER: ${WP_DB_USER}
       MYSQL_PASSWORD: ${WP_DB_PASS}
       MYSQL_ROOT_PASSWORD: ${WP_DB_ROOT}
     volumes:
-      - ${WP_PATH}/db:/var/lib/mysql
+      - ${WP_DB_PATH}:/var/lib/mysql
     networks:
       - wpnet
 
 networks:
   wpnet:
     driver: bridge
-
