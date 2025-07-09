@@ -1,0 +1,37 @@
+services:
+  dio_web:
+    image: dio_web
+    container_name: dio_web
+    restart: unless-stopped
+    ports:
+      - "${DIO_PORT_WEB:-5555}:5555"
+    environment:
+      - FLASK_ENV=development
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MODEL_PROVIDER=${MODEL_PROVIDER:-ollama}
+      - DIO_DB_HOST=${DIO_DB_HOST:-dio_db}
+      - DIO_DB_PORT=${DIO_DB_PORT:-3306}
+      - DIO_DB_USER=${DIO_DB_USER:-dio}
+      - DIO_DB_PASS=${DIO_DB_PASS}
+      - DIO_DB_NAME=${DIO_DB_NAME:-dio}
+    volumes:
+      - ${DIO_DATA}/app:/app
+      - ${DIO_DATA}/scripts:/scripts
+      - ${DIO_DATA}/logs:/logs
+      - ${DIO_DATA}/static:/static
+      - ${DIO_DATA}/templates:/templates
+      - ${DIO_DATA}/memory:/memory
+
+  dio_db:
+    image: mariadb:11
+    container_name: dio_db
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DIO_DB_ROOT_PASS}
+      - MARIADB_DATABASE=${DIO_DB_NAME}
+      - MARIADB_USER=${DIO_DB_USER}
+      - MARIADB_PASSWORD=${DIO_DB_PASS}
+    ports:
+      - "${DIO_PORT_DB:-3306}:3306"
+    volumes:
+      - ${DIO_DATA}/db:/var/lib/mysql
