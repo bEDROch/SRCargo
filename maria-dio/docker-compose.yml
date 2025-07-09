@@ -45,3 +45,13 @@ services:
     environment:
       - IS_PERSISTENT=TRUE
       - CHROMA_DB_IMPL=duckdb
+  dio_mcp:
+    build:
+      context: /srv/maria/mcp-agent
+    container_name: dio_mcp
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - /srv/maria/mcp-agent:/app
+    command: python3 main.py
