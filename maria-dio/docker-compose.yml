@@ -35,3 +35,15 @@ services:
       - "${DIO_PORT_DB:-3306}:3306"
     volumes:
       - ${DIO_DATA}/db:/var/lib/mysql
+      
+  dio_chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: dio_chroma
+    restart: unless-stopped
+    ports:
+      - "${DIO_PORT_CHROMA:-8000}:8000"
+    volumes:
+      - ${DIO_DATA}/chroma:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - CHROMA_DB_IMPL=duckdb
