@@ -18,8 +18,6 @@ services:
       - ${DIO_DATA}/app:/app
       - ${DIO_DATA}/scripts:/scripts
       - ${DIO_DATA}/logs:/logs
-      - ${DIO_DATA}/static:/static
-      - ${DIO_DATA}/templates:/templates
       - ${DIO_DATA}/memory:/memory
 
   dio_db:
