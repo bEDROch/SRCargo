@@ -1,6 +1,6 @@
 services:
   dio_web:
-    image: dio_web
+    image: dio_web:local
     container_name: dio_web
     restart: unless-stopped
     ports:
