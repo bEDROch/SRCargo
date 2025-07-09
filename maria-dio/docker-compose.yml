@@ -43,7 +43,7 @@ services:
     ports:
       - "${DIO_PORT_CHROMA:-8000}:8000"
     volumes:
-      - ${DIO_DATA}/chroma:/chroma/chroma
+      - ${DIO_DATA}/db/chroma:/chroma/chroma
     environment:
       - IS_PERSISTENT=TRUE
       - CHROMA_DB_IMPL=duckdb
