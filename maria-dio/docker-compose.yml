@@ -1,11 +1,14 @@
 services:
   dio_web:
-    image: dio_web:local
+    image: python:3.12
     container_name: dio_web
+    working_dir: dio_web
+    command: bash /app/start.sh
     restart: unless-stopped
     ports:
       - "${DIO_PORT_WEB:-5555}:5555"
     environment:
+      - FLASK_APP=app.py 
       - FLASK_ENV=development
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - MODEL_PROVIDER=${MODEL_PROVIDER:-ollama}
