@@ -19,7 +19,7 @@ services:
       - DIO_DB_PASS=${DIO_DB_PASS}
       - DIO_DB_NAME=${DIO_DB_NAME:-dio}
     volumes:
-      - ${DIO_DATA}/app:/app
+      - ${DIO_DATA}:/app
       - ${DIO_DATA}/scripts:/scripts
       - ${DIO_DATA}/logs:/logs
       - ${DIO_DATA}/memory:/memory
