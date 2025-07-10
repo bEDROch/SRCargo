@@ -25,7 +25,7 @@ services:
       - ${DIO_DATA}/scripts:/scripts
       - ${DIO_DATA}/logs:/logs
       - ${DIO_DATA}/memory:/memory
-      - ${PYTHON_CACHE}:${PYTHON_CACHE}
+      - ${PYTHON_CACHE}:/${PYTHON_CACHE}
 
   dio_db:
     image: mariadb:11
