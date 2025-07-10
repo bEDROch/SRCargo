@@ -11,6 +11,8 @@ services:
       - "${DIO_PORT_WEB:-5555}:5555"
     environment:
       - FLASK_ENV=production
+      - FLASK_APP=wsgi.py
+      - PIP_CACHE_DIR=${PYTHON_CACHE}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - MODEL_PROVIDER=${MODEL_PROVIDER:-ollama}
       - DIO_DB_HOST=${DIO_DB_HOST:-dio_db}
@@ -19,7 +21,7 @@ services:
       - DIO_DB_PASS=${DIO_DB_PASS}
       - DIO_DB_NAME=${DIO_DB_NAME:-dio}
     volumes:
-      - ${DIO_IMG}:/app
+      - ${DIO_DATA}:/app
       - ${DIO_DATA}/scripts:/scripts
       - ${DIO_DATA}/logs:/logs
       - ${DIO_DATA}/memory:/memory
