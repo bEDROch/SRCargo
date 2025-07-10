@@ -1,5 +1,6 @@
 services:
   dio_web:
+    image: dio_web:local
     build:
       context: ${DIO_DATA}  # o hardcoded: /srv/cargo/volumes/maria/dio
     container_name: dio_web
