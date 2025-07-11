@@ -1,10 +1,19 @@
-**Resoconto del Progetto **``**: passato, presente e futuro**
+**Resoconto del Progetto MarIA-Dio: passato, presente e futuro**
 
 ---
 
-### 🕐 **Contesto generale**
+### 🕐 **Contesto generale e Visione**
 
-Il progetto `dio_web` fa parte dell'iniziativa più ampia chiamata *MarIA*, un ecosistema self-hosted su server Ubuntu per l'interazione avanzata con agenti AI. L'interfaccia `dio_web` è realizzata in Flask ed eseguita in un container Docker gestito tramite Portainer, con codice montato esternamente e agenti CrewAI come backend di automazione. Il frontend sarà disponibile via `https://dio.bedro.ch` tramite Nginx Proxy Manager.
+Il progetto `dio_web` fa parte dell'iniziativa più ampia chiamata *MarIA*, un ecosistema self-hosted su server Ubuntu (nome: `publo`) per l'interazione avanzata con agenti AI. L'obiettivo è creare un sistema **etico, modulare e intelligente** che assista nella gestione quotidiana dei dispositivi, dei progetti e del codice.
+
+L'interfaccia `dio_web` è realizzata in Flask ed eseguita in un container Docker gestito tramite Portainer, con codice montato esternamente e agenti CrewAI come backend di automazione. Il frontend è disponibile via `https://dio.bedro.ch` tramite Nginx Proxy Manager.
+
+#### Caratteristiche Principali:
+- **Assistente IA nel terminale** con comportamento simile a Warp
+- Capacità di lettura comandi e output con correzioni automatiche
+- Accesso al contesto (cartella corrente, progetti attivi, stato Docker)
+- Funzioni agentiche per shell, file, docker, codice
+- Modalità di esecuzione: **Manuale** (con conferma) e **Adhoc** (autonoma)
 
 ---
 
@@ -12,11 +21,32 @@ Il progetto `dio_web` fa parte dell'iniziativa più ampia chiamata *MarIA*, un e
 
 ### **Struttura attuale del codice**
 
-- Codice dell'app Flask: `/srv/maria/dio/app`
+```
+/srv/maria/dio/
+├── app/                  # Flask app MCP + dashboard
+├── scripts/              # Script ZSH, Python, Bash
+├── memory/              # Memorie temporanee e persistenti
+├── templates/           # Interfaccia web
+├── static/              # Dashboard (JS, CSS, immagini)
+├── db/                  # MariaDB container con dati IA
+└── venv/               # Virtualenv python (non nel container)
+```
+
+Dettagli chiave:
 - Struttura Flask: modulare con `create_app()` in `__init__.py`
 - Entry-point: `/srv/maria/dio/app/wsgi.py`
 - Codice agenti: `/srv/maria/dio/app/agents/`
-- Virtualenv locale per test: `/srv/maria/dio/venv/`
+- MCP server attivo su `dio.bedro.ch/mcp`
+
+### **Componenti del Sistema**
+
+- **LLM Locale**: Hermes 2 (Ollama)
+- **API Esterne**: OpenAI GPT-4 (con chiave personale)
+- **Agenti CrewAI disponibili**:
+  - `shell_agent`
+  - `docker_agent`
+  - `code_agent`
+  - `fs_agent`
 
 ### **Docker & Build**
 
@@ -63,9 +93,9 @@ Far funzionare in modo stabile l'interfaccia `dio_web` con:
 
 ### **Piano di stabilizzazione**
 
-1. **Bloccare versions compatibili nel **``
+1. **Bloccare versions compatibili nel requirements.txt**
 2. **Separare ambiente sviluppo da quello containerizzato**
-3. **Eliminare virtualenv dal volume bindato (**``**)**
+3. **Eliminare virtualenv dal volume bindato del container**
 4. **Testare agenti CrewAI uno a uno (es. file\_agent, shell\_agent)**
 5. **Isolare e sostituire pacchetti deprecati (LangChain Core, Pydantic, ecc.)**
 
@@ -85,13 +115,146 @@ Far funzionare in modo stabile l'interfaccia `dio_web` con:
 
 ---
 
-## 🚀 **Prossimi Passi**
+## 🚀 **Prossimi Passi e Obiettivi**
 
--
+### Fase 1: Interpretazione intelligente del prompt
+- Riconoscere la natura del prompt: spiegazione, fix, ricerca, creazione file/script, operazione Docker
+- Associare il prompt a un agente esistente appropriato
+- Utilizzare il contesto (cartella, output, file)
+
+### Fase 2: Elaborazione e proposta
+- Fornire risposte chiare e mirate
+- Proporre azioni specifiche:
+  - `esegui comando`
+  - `genera file`
+  - `applica patch`
+  - `mostra spiegazione`
+  - `apri documentazione`
+- Gestire modalità manual/adhoc appropriatamente
+
+### Fase 3: Output strutturato (Warp-friendly)
+Implementare output JSON strutturato per Warp, esempio:
+```json
+{
+  "reply": "Il container dio_web non espone la porta 5555. Puoi aggiungere '5555:5555' nel docker-compose.",
+  "actions": [
+    {
+      "label": "Apri docker-compose.yml",
+      "type": "open_file",
+      "path": "/srv/maria/dio/docker-compose.yml"
+    },
+    {
+      "label": "Modifica e riavvia stack",
+      "type": "run_script",
+      "path": "/srv/maria/dio/scripts/fix_ports.sh"
+    }
+  ],
+  "mode": "manual"
+}
+```
+
+### ⚠️ Misure di Sicurezza
+- In modalità `adhoc`, richiedere conferma per comandi distruttivi (`rm`, `wipe`, `docker prune`)
+- Implementare meccanismo di interruzione per ogni step automatico
+- Mantenere log delle operazioni eseguite
 
 ---
 
-✍️ **Nota finale** Il sistema sarà progettato per facilitare l'estensione, con moduli indipendenti e routing flessibile. Un nuovo agente AI può contribuire al progetto usando questa base per automatizzare task, creare un sistema esperto o interagire con l'ambiente Linux via script e strumenti intelligenti.
+## 🎯 **Architettura del Sistema Agentico**
 
-Pedro è il maintainer principale. Ogni modifica significativa deve mantenere coerenza con questa visione.
+### Core System
+1. **Orchestratore Centrale (MarIA Core)**
+   - Gestisce il ciclo di vita degli agenti
+   - Mantiene il contesto globale
+   - Coordina le comunicazioni tra agenti
+   - Gestisce la memoria condivisa e il database
+
+2. **Sistema di Memoria**
+   - ChromaDB per memoria vettoriale
+   - MariaDB per dati strutturati
+   - Sistema di file per cache e dati temporanei
+
+3. **Interfacce di Comunicazione**
+   - MCP Server per comunicazioni esterne
+   - Endpoint RESTful per tools esterni
+   - WebSocket per comunicazioni real-time
+   - CLI per interazioni dirette
+
+### Agenti Specializzati
+1. **Agenti di Sistema**
+   - `shell_agent`: operazioni di sistema
+   - `docker_agent`: gestione container
+   - `fs_agent`: gestione filesystem
+   - `code_agent`: analisi e modifica codice
+
+2. **Agenti di Task**
+   - `research_agent`: ricerche online
+   - `email_agent`: gestione email
+   - `scraping_agent`: estrazione dati web
+   - `scheduler_agent`: pianificazione task
+
+3. **Agenti di Monitoraggio**
+   - `security_agent`: monitoraggio sicurezza
+   - `resource_agent`: monitoraggio risorse
+   - `log_agent`: analisi log
+   - `health_agent`: stato del sistema
+
+### Modalità Operative
+1. **Modalità Autonoma**
+   - Task scheduling automatico
+   - Monitoraggio proattivo
+   - Auto-ottimizzazione
+   - Reporting periodico
+
+2. **Modalità Assistita**
+   - Risposta a comandi diretti
+   - Suggerimenti proattivi
+   - Validazione azioni critiche
+   - Feedback in tempo reale
+
+### Integrazioni Esterne
+1. **Tools di Sviluppo**
+   - VS Code via extensions
+   - Warp Terminal
+   - Git tools
+   - CI/CD pipelines
+
+2. **Servizi Cloud**
+   - API OpenAI/GPT-4
+   - Servizi di storage
+   - Servizi di monitoring
+   - Backup solutions
+
+### Sicurezza e Controllo
+- Autenticazione multi-factor
+- Logging completo delle azioni
+- Backup automatizzati
+- Controlli di sicurezza
+- Limitazioni su azioni critiche
+- Modalità di recovery
+
+## 🎯 **Obiettivo Finale: Terminal AI Assistant**
+
+Come traguardo finale del progetto, si prevede lo sviluppo di un'applicazione terminale nativa simile a Warp (warp.dev), che integri completamente le capacità di MarIA. Questo obiettivo rappresenta l'evoluzione naturale del sistema, ma viene pianificato come fase successiva per permettere prima il consolidamento dell'infrastruttura core.
+
+### Caratteristiche Previste
+- **UI Terminal Nativa**: interfaccia terminale moderna e reattiva
+- **Integrazione MarIA**: accesso diretto al sistema di agenti
+- **Context-Aware**: comprensione del contesto del terminale in tempo reale
+- **Smart Autocompletion**: suggerimenti intelligenti basati sul contesto
+- **Command History**: storico comandi con ricerca semantica
+- **AI Commands**: comandi speciali per interagire con MarIA
+- **Real-Time Assistance**: suggerimenti e correzioni in tempo reale
+- **Themeable**: temi e personalizzazione dell'interfaccia
+
+### Priorità Attuali
+Per raggiungere questo obiettivo, il focus immediato rimane su:
+1. Stabilizzazione del core system MarIA
+2. Perfezionamento del sistema di agenti
+3. Ottimizzazione delle performance
+4. Consolidamento dell'architettura di base
+
+✍️ **Nota finale** Il sistema è progettato per essere modulare, sicuro e facilmente estensibile. Ogni agente opera in modo autonomo ma coordinato, contribuendo a un ecosistema intelligente che può sia assistere attivamente che operare in background secondo necessità. La visione finale include un'interfaccia terminale nativa che renderà l'interazione con MarIA ancora più naturale ed efficiente.
+
+Pedro è il maintainer principale. Ogni modifica significativa deve mantenere coerenza con questa visione architettonica.
 
