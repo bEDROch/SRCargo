@@ -1,9 +1,3 @@
-version: '3.8'
-
-networks:
-  dio_net:
-    driver: bridge
-
 services:
   dio_web:
     image: dio_web:local
@@ -139,3 +133,6 @@ services:
         reservations:
           cpus: '0.25'
           memory: 512M
+networks:
+  dio_net:
+    driver: bridge
