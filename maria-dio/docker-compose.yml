@@ -1,6 +1,19 @@
+version: '3.8'
+
+networks:
+  dio_net:
+    driver: bridge
+
 services:
   dio_web:
     image: dio_web:local
+    depends_on:
+      dio_db:
+        condition: service_healthy
+      dio_chroma:
+        condition: service_healthy
+      dio_mcp:
+        condition: service_started
     #build: #Deprecato a causa dell'immagine locale creata "dio_web:local"
     #  context: ${DIO_DATA}  # o hardcoded: /srv/cargo/volumes/maria/dio
     container_name: dio_web
@@ -26,6 +39,22 @@ services:
       - ${DIO_DATA}/logs:/logs
       - ${DIO_DATA}/memory:/memory
       - ${PYTHON_CACHE}:/${PYTHON_CACHE}
+    networks:
+      - dio_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
 
   dio_db:
     image: mariadb:11
@@ -40,6 +69,22 @@ services:
       - "${DIO_PORT_DB:-3306}:3306"
     volumes:
       - ${DIO_DATA}/db:/var/lib/mysql
+    networks:
+      - dio_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MARIADB_USER", "-p$$MARIADB_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
       
   dio_chroma:
     image: ghcr.io/chroma-core/chroma:latest
@@ -52,6 +97,22 @@ services:
     environment:
       - IS_PERSISTENT=TRUE
       - CHROMA_DB_IMPL=duckdb
+    networks:
+      - dio_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
   dio_mcp:
     build:
       context: /srv/maria/mcp-agent
@@ -62,3 +123,19 @@ services:
     volumes:
       - /srv/maria/mcp-agent:/app
     command: python3 main.py
+    networks:
+      - dio_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
