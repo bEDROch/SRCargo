@@ -72,7 +72,7 @@ services:
     networks:
       - dio_net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MARIADB_USER", "-p$$MARIADB_PASSWORD"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DIO_DB_ROOT_PASS}"]
       interval: 10s
       timeout: 5s
       retries: 5
