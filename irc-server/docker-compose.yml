@@ -10,10 +10,10 @@ services:
       - /srv/cargo/volumes/irc-server/inspircd/data:/inspircd/data
       - /srv/cargo/volumes/irc-server/inspircd/logs:/inspircd/logs
     environment:
-      - INSPIRCD_SERVER_NAME=irc.bedro.ch
-      - INSPIRCD_SERVER_DESC=Server IRC Privato
-      - INSPIRCD_ADMIN_NAME=Admin
-      - INSPIRCD_ADMIN_EMAIL=admin@bedro.ch
+      - INSPIRCD_SERVER_NAME=${INSPIRCD_SERVER_NAME}
+      - INSPIRCD_SERVER_DESC=${INSPIRCD_SERVER_DESC}
+      - INSPIRCD_ADMIN_NAME=${INSPIRCD_ADMIN_NAME}
+      - INSPIRCD_ADMIN_EMAIL=${INSPIRCD_ADMIN_EMAIL}
     restart: unless-stopped
     networks:
       - irc-network
