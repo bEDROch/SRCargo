@@ -29,7 +29,6 @@ services:
       - ${DIO_DATA}/app:/app
       - ${DIO_DATA}/scripts:/scripts
       - ${DIO_DATA}/logs:/logs
-      - ${DIO_DATA}/memory:/memory
       - ${PYTHON_CACHE}:/${PYTHON_CACHE}
     networks:
       - dio_net
@@ -39,9 +38,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-        reservations:
-          cpus: '0.5'
-          memory: 1G
 
   dio_db:
     image: mariadb:11
@@ -64,9 +60,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-        reservations:
-          cpus: '0.25'
-          memory: 512M
       
   dio_chroma:
     image: ghcr.io/chroma-core/chroma:latest
@@ -88,9 +81,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-        reservations:
-          cpus: '0.25'
-          memory: 512M
 
   dio_mcp:
     build:
@@ -110,9 +100,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-        reservations:
-          cpus: '0.25'
-          memory: 512M
 
 networks:
   dio_net:
