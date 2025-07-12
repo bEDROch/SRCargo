@@ -6,9 +6,9 @@ services:
       - "6667:6667"   # IRC non-SSL
       - "6697:6697"   # IRC SSL
     volumes:
-      - /srv/cargo/volumes/irc-server/inspircd/conf:/inspircd/conf
-      - /srv/cargo/volumes/irc-server/inspircd/data:/inspircd/data
-      - /srv/cargo/volumes/irc-server/inspircd/logs:/inspircd/logs
+      - ${INSPIRCD_CONF_PATH}:/inspircd/conf
+      - ${INSPIRCD_DATA_PATH}:/inspircd/data
+      - ${INSPIRCD_LOGS_PATH}:/inspircd/logs
     environment:
       - INSPIRCD_SERVER_NAME=${INSPIRCD_SERVER_NAME}
       - INSPIRCD_SERVER_DESC=${INSPIRCD_SERVER_DESC}
@@ -25,7 +25,7 @@ services:
     ports:
       - "9000:9000"
     volumes:
-      - /srv/cargo/volumes/irc-server/thelounge:/var/opt/thelounge
+      - ${THELOUNGE_DATA_PATH}:/var/opt/thelounge
     restart: unless-stopped
     depends_on:
       - inspircd
