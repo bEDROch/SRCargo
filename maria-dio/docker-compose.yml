@@ -39,11 +39,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
         reservations:
           cpus: '0.5'
           memory: 1G
@@ -69,11 +64,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
         reservations:
           cpus: '0.25'
           memory: 512M
@@ -98,11 +88,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
         reservations:
           cpus: '0.25'
           memory: 512M
@@ -125,11 +110,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
         reservations:
           cpus: '0.25'
           memory: 512M
