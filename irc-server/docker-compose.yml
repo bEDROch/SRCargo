@@ -1,0 +1,37 @@
+services:
+  inspircd:
+    image: inspircd/inspircd-docker:latest
+    container_name: irc-server
+    ports:
+      - "6667:6667"   # IRC non-SSL
+      - "6697:6697"   # IRC SSL
+    volumes:
+      - /srv/cargo/volumes/irc-server/inspircd/conf:/inspircd/conf
+      - /srv/cargo/volumes/irc-server/inspircd/data:/inspircd/data
+      - /srv/cargo/volumes/irc-server/inspircd/logs:/inspircd/logs
+    environment:
+      - INSPIRCD_SERVER_NAME=irc.bedro.ch
+      - INSPIRCD_SERVER_DESC=Server IRC Privato
+      - INSPIRCD_ADMIN_NAME=Admin
+      - INSPIRCD_ADMIN_EMAIL=admin@bedro.ch
+    restart: unless-stopped
+    networks:
+      - irc-network
+
+  # Opzionale: Web IRC Client
+  thelounge:
+    image: thelounge/thelounge:latest
+    container_name: irc-webclient
+    ports:
+      - "9000:9000"
+    volumes:
+      - /srv/cargo/volumes/irc-server/thelounge:/var/opt/thelounge
+    restart: unless-stopped
+    depends_on:
+      - inspircd
+    networks:
+      - irc-network
+
+networks:
+  irc-network:
+    driver: bridge
