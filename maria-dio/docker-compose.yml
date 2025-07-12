@@ -3,7 +3,9 @@ services:
     image: dio_web:local
     depends_on:
       dio_db:
+        condition: service_started
       dio_chroma:
+        condition: service_started
       dio_mcp:
         condition: service_started
     container_name: dio_web
