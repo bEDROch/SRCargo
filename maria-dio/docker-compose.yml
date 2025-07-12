@@ -8,8 +8,6 @@ services:
         condition: service_healthy
       dio_mcp:
         condition: service_started
-    #build: #Deprecato a causa dell'immagine locale creata "dio_web:local"
-    #  context: ${DIO_DATA}  # o hardcoded: /srv/cargo/volumes/maria/dio
     container_name: dio_web
     working_dir: /app
     command: python wsgi.py
@@ -56,21 +54,21 @@ services:
     restart: unless-stopped
     environment:
       - MARIADB_ROOT_PASSWORD=${DIO_DB_ROOT_PASS}
-      - MARIADB_DATABASE=${DIO_DB_NAME}
-      - MARIADB_USER=${DIO_DB_USER}
+      - MARIADB_DATABASE=${DIO_DB_NAME:-dio}
+      - MARIADB_USER=${DIO_DB_USER:-dio}
       - MARIADB_PASSWORD=${DIO_DB_PASS}
     ports:
       - "${DIO_PORT_DB:-3306}:3306"
     volumes:
-      - ${DIO_DATA}/db:/var/lib/mysql
+      - ${DIO_DATA}/db/mariadb:/var/lib/mysql
     networks:
       - dio_net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DIO_DB_ROOT_PASS}"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "/usr/bin/mysqladmin", "ping", "--silent"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     deploy:
       resources:
         limits:
@@ -90,7 +88,8 @@ services:
       - ${DIO_DATA}/db/chroma:/chroma/chroma
     environment:
       - IS_PERSISTENT=TRUE
-      - CHROMA_DB_IMPL=duckdb
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - ALLOW_RESET=FALSE
     networks:
       - dio_net
     healthcheck:
@@ -98,7 +97,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 20s
+      start_period: 40s
     deploy:
       resources:
         limits:
@@ -107,6 +106,7 @@ services:
         reservations:
           cpus: '0.25'
           memory: 512M
+
   dio_mcp:
     build:
       context: /srv/maria/mcp-agent
@@ -124,7 +124,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 20s
+      start_period: 40s
     deploy:
       resources:
         limits:
@@ -133,6 +133,7 @@ services:
         reservations:
           cpus: '0.25'
           memory: 512M
+
 networks:
   dio_net:
     driver: bridge
