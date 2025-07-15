@@ -1,4 +1,38 @@
 services:
+  dio_web:
+    image: dio_web:local
+    depends_on:
+      dio_db:
+        condition: service_started
+      dio_chroma:
+        condition: service_started
+      dio_mcp:
+        condition: service_started
+    container_name: dio_web
+    working_dir: /app
+    command: python wsgi.py
+    restart: unless-stopped
+    ports:
+      - "${DIO_PORT_WEB:-5555}:5555"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=wsgi.py
+      - PIP_CACHE_DIR=${PYTHON_CACHE}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MODEL_PROVIDER=${MODEL_PROVIDER:-ollama}
+      - DIO_DB_HOST=${DIO_DB_HOST:-dio_db}
+      - DIO_DB_PORT=${DIO_DB_PORT:-3306}
+      - DIO_DB_USER=${DIO_DB_USER:-dio}
+      - DIO_DB_PASS=${DIO_DB_PASS}
+      - DIO_DB_NAME=${DIO_DB_NAME:-dio}
+    volumes:
+      - ${DIO_DATA}/app:/app
+      - ${DIO_DATA}/scripts:/scripts
+      - ${DIO_DATA}/logs:/logs
+      - ${PYTHON_CACHE}:/${PYTHON_CACHE}
+    networks:
+      - dio_net
+
   dio_db:
     image: mariadb:11
     container_name: dio_db
