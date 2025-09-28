@@ -36,7 +36,7 @@ services:
     container_name: dio_mcp
     restart: unless-stopped
     ports:
-      - "8080:5000"
+      - "2052:5000"
     volumes:
       - /srv/maria/mcp-agent:/app
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
