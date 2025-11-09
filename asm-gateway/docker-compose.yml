@@ -3,7 +3,8 @@ version: '3.8'
 # ASM Gateway - AI-native Knowledge Management
 # Portainer Stack: ASM Gateway
 # GitHub: github.com/bEDROch/SRCargo
-# ENV: /srv/cargo/portainer/build/env/asm-gateway/.env
+# ENV: /srv/cargo/portainer/build/env/asm-gateway.env
+# ChromaDB: Native PersistentClient at /main/data/chromadb (no container)
 
 services:
   asm-gateway:
@@ -53,7 +54,6 @@ services:
     
     networks:
       - asm-network
-      - maria-network  # Connect to existing MARIA network
     
     labels:
       - "traefik.enable=true"
@@ -84,11 +84,8 @@ services:
 networks:
   asm-network:
     driver: bridge
-  
-  # Connect to existing MARIA network for ChromaDB access
-  maria-network:
-    external: true
-    name: maria_default
 
-# Note: ChromaDB is accessed via existing MARIA stack
-# Path: /main/data/chromadb (shared volume)
+# ChromaDB Configuration:
+# - Native PersistentClient (NOT Docker container)
+# - Path: /main/data/chromadb (mounted as volume in asm-gateway)
+# - No network needed - direct filesystem access
