@@ -1,0 +1,94 @@
+version: '3.8'
+
+# ASM Gateway - AI-native Knowledge Management
+# Portainer Stack: ASM Gateway
+# GitHub: github.com/bEDROch/SRCargo
+# ENV: /srv/cargo/portainer/build/env/asm-gateway/.env
+
+services:
+  asm-gateway:
+    image: python:3.12-slim
+    container_name: asm-gateway
+    restart: unless-stopped
+    
+    # Source code volume (build context)
+    volumes:
+      - /main/dev/net/integrations/asm/gateway:/app
+      - /main/data/chromadb:/data/chromadb
+      - /srv/cargo/portainer/build/env/asm-gateway/.env:/app/.env:ro
+    
+    working_dir: /app
+    
+    # Environment variables (override with .env file)
+    environment:
+      - ASM_HOST=0.0.0.0
+      - ASM_PORT=8100
+      - ASM_DEBUG=false
+      - ASM_CHROMADB_PERSIST_PATH=/data/chromadb
+      - ASM_MONGODB_URL=mongodb://mongodb:27017
+      - ASM_MONGODB_DATABASE=mania
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    
+    ports:
+      - "8100:8100"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Install dependencies and run
+    command: >
+      bash -c "
+        pip install --no-cache-dir -q -r requirements.txt &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8100 --workers 2
+      "
+    
+    depends_on:
+      - mongodb
+    
+    networks:
+      - asm-network
+      - maria-network  # Connect to existing MARIA network
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.asm.rule=Host(\`asm.bedro.local\`)"
+      - "traefik.http.services.asm.loadbalancer.server.port=8100"
+  
+  # MongoDB for hybrid search
+  mongodb:
+    image: mongo:7-jammy
+    container_name: asm-mongodb
+    restart: unless-stopped
+    
+    volumes:
+      - /srv/cargo/build/mongodb/asm:/data/db
+    
+    environment:
+      - MONGO_INITDB_DATABASE=mania
+    
+    ports:
+      - "27018:27017"  # Different port to avoid conflicts
+    
+    networks:
+      - asm-network
+    
+    labels:
+      - "traefik.enable=false"
+
+networks:
+  asm-network:
+    driver: bridge
+  
+  # Connect to existing MARIA network for ChromaDB access
+  maria-network:
+    external: true
+    name: maria_default
+
+# Note: ChromaDB is accessed via existing MARIA stack
+# Path: /main/data/chromadb (shared volume)
