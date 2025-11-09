@@ -57,7 +57,7 @@ services:
     
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.asm.rule=Host(\`asm.bedro.local\`)"
+      - "traefik.http.routers.asm.rule=Host(`asm.bedro.local`)"
       - "traefik.http.services.asm.loadbalancer.server.port=8100"
   
   # MongoDB for hybrid search
