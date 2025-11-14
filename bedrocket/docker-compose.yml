@@ -1,0 +1,30 @@
+services:
+  rocketchat:
+    image: registry.rocket.chat/rocketchat/rocket.chat:latest
+    container_name: rocketchat
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Zurich
+      - PORT=3000
+      - ROOT_URL=http://localhost:3000
+      - MONGO_URL=mongodb://mongo:27017/rocketchat
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+      - Accounts_AvatarStorePath=/app/uploads
+    ports:
+      - "3000:3000"
+    volumes:
+      - /srv/cargo/volumes/rocketchat/uploads:/app/uploads
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: unless-stopped
+    volumes:
+      - /srv/cargo/volumes/rocketchat/configdb:/data/configdb
+      - /srv/cargo/volumes/rocketchat/mongodb:/data/db
+
+networks:
+  default:
+    name: bedrocket-net

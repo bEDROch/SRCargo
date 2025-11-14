@@ -1,0 +1,48 @@
+services:
+  paperless-web:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless-web
+    restart: unless-stopped
+    environment:
+      - PAPERLESS_DBNAME=paperless
+      - PAPERLESS_ADMIN_USER=admin
+      - PAPERLESS_DBHOST=paperless-db
+      - PAPERLESS_SECRET_KEY=changeme_later
+      - USERMAP_GID=1005
+      - PAPERLESS_REDIS=redis://paperless-redis:6379
+      - PAPERLESS_ADMIN_PASSWORD=adminpass
+      - PAPERLESS_URL=https://doc.bedro.ch
+      - USERMAP_UID=1005
+      - PAPERLESS_DBPASS=password
+      - PAPERLESS_TIME_ZONE=Europe/Zurich
+      - PAPERLESS_DBUSER=paperless
+    ports:
+      - "8400:8000"
+    volumes:
+      - /home/pedro/Documenti/IAuto/consume:/usr/src/paperless/consume
+      - /srv/cargo/volumes/paperless/data:/usr/src/paperless/data
+      - /home/pedro/Documenti/IAuto/export:/usr/src/paperless/export
+      - /srv/cargo/volumes/paperless/media:/usr/src/paperless/media
+    depends_on:
+      - paperless-db
+      - paperless-redis
+
+  paperless-db:
+    image: postgres:15
+    container_name: paperless-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=paperless
+      - POSTGRES_USER=paperless
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - /srv/cargo/volumes/paperless/db:/var/lib/postgresql/data
+
+  paperless-redis:
+    image: redis:7
+    container_name: paperless-redis
+    restart: unless-stopped
+
+networks:
+  default:
+    name: paperless-net

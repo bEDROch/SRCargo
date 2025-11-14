@@ -1,0 +1,63 @@
+services:
+  recorder-bot:
+    build: .
+    restart: unless-stopped
+    container_name: espresso-bot
+    env_file:
+      - .env
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - NOELIA_ID=${NOELIA_ID:-967438977420378173}
+      - PEDRO_ID=${PEDRO_ID:-338428641727873034}
+      - REC_PATH=${REC_PATH:-/app/recordings}
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/espresso}
+    volumes:
+      - ./recordings:/app/recordings  # Locale: /srv/discord/bot/recordings
+    depends_on:
+      - mongo
+    networks:
+      - espresso-net
+
+  espresso-dashboard:
+    build: ./dashboard
+    restart: unless-stopped
+    container_name: espresso-dashboard
+    ports:
+      - "0.0.0.0:3030:3030"  # Esposto pubblicamente con auth interna
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/espresso}
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - NOELIA_ID=${NOELIA_ID:-967438977420378173}
+      - PEDRO_ID=${PEDRO_ID:-338428641727873034}
+      - NODE_ENV=${NODE_ENV:-production}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://dash.bedro.ch}
+      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD}
+    volumes:
+      - ./recordings:/recordings  # Condiviso con bot per accesso audio
+    depends_on:
+      - mongo
+    networks:
+      - espresso-net
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    container_name: espresso-mongo
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    environment:
+      - MONGO_INITDB_DATABASE=espresso
+    networks:
+      - espresso-net
+
+volumes:
+  mongo_data:
+  mongo_config:
+
+networks:
+  espresso-net:
+    driver: bridge
