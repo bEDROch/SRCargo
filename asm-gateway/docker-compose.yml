@@ -15,6 +15,7 @@ services:
     # Source code volume (build context)
     volumes:
       - /main/dev/net/integrations/asm/gateway:/app
+      - /main:/main:ro  # Read-only access to /main for core.memory.hybrid
       - /main/data/chromadb:/data/chromadb
       - /srv/cargo/portainer/build/env/asm-gateway/.env:/app/.env:ro
     
@@ -29,7 +30,7 @@ services:
       - ASM_MONGODB_URL=mongodb://mongodb:27017
       - ASM_MONGODB_DATABASE=mania
       - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app:/main
     
     ports:
       - "8100:8100"

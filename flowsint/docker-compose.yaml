@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+  # Redis - Message Broker per Celery
+  flowsint-redis:
+    image: redis:7-alpine
+    container_name: flowsint-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"  # External port 6380 to avoid conflicts
+    volumes:
+      - /srv/maria/cargo/volumes/flowsint/redis:/data
+    command: redis-server --appendonly yes --save 60 1
+    networks:
+      - flowsint-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Neo4j - Graph Database per Task Dependencies
+  flowsint-neo4j:
+    image: neo4j:5.15-community
+    container_name: flowsint-neo4j
+    restart: unless-stopped
+    ports:
+      - "7475:7474"  # HTTP
+      - "7688:7687"  # Bolt
+    volumes:
+      - /srv/maria/cargo/volumes/flowsint/neo4j/data:/data
+      - /srv/maria/cargo/volumes/flowsint/neo4j/logs:/logs
+      - /srv/maria/cargo/volumes/flowsint/neo4j/import:/var/lib/neo4j/import
+      - /srv/maria/cargo/volumes/flowsint/neo4j/plugins:/plugins
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD}
+      - NEO4J_dbms_memory_pagecache_size=512M
+      - NEO4J_dbms_memory_heap_initial__size=512M
+      - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*
+    networks:
+      - flowsint-net
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "${NEO4J_USER:-neo4j}", "-p", "${NEO4J_PASSWORD}", "RETURN 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Flowsint API - FastAPI Service
+  flowsint-api:
+    image: flowsint/flowsint:latest
+    container_name: flowsint-api
+    restart: unless-stopped
+    depends_on:
+      flowsint-redis:
+        condition: service_healthy
+      flowsint-neo4j:
+        condition: service_healthy
+    ports:
+      - "${FLOWSINT_API_PORT:-8090}:8000"
+    volumes:
+      - /srv/maria/cargo/volumes/flowsint/logs:/app/logs
+      - /main/dev/net/integrations/pme/flows:/app/flows  # POC flow mount
+      - /main/logs:/app/telemetry:ro  # Telemetry read access
+    environment:
+      - REDIS_URL=redis://flowsint-redis:6379/0
+      - NEO4J_URI=bolt://flowsint-neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - ETHICS_AUDITOR_THRESHOLD=${ETHICS_THRESHOLD:-0.53}
+      - GUARDIAN_SEC_ENABLED=${GUARDIAN_ENABLED:-true}
+      - TELEMETRY_PATH=/app/telemetry
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+    networks:
+      - flowsint-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Celery Worker - Task Executor
+  flowsint-worker:
+    image: flowsint/flowsint:latest
+    container_name: flowsint-worker
+    restart: unless-stopped
+    depends_on:
+      flowsint-redis:
+        condition: service_healthy
+      flowsint-neo4j:
+        condition: service_healthy
+    volumes:
+      - /srv/maria/cargo/volumes/flowsint/logs:/app/logs
+      - /main/dev/net/integrations/pme/flows:/app/flows
+      - /main/logs:/app/telemetry
+    environment:
+      - REDIS_URL=redis://flowsint-redis:6379/0
+      - NEO4J_URI=bolt://flowsint-neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - ETHICS_AUDITOR_THRESHOLD=${ETHICS_THRESHOLD:-0.53}
+      - GUARDIAN_SEC_ENABLED=${GUARDIAN_ENABLED:-true}
+      - TELEMETRY_PATH=/app/telemetry
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+      - C_FORCE_ROOT=true  # Allow Celery as root (container context)
+    command: celery -A flowsint.celery worker --loglevel=info --concurrency=4 --max-tasks-per-child=100
+    networks:
+      - flowsint-net
+    healthcheck:
+      test: ["CMD", "celery", "-A", "flowsint.celery", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Celery Beat - Scheduler (optional, for periodic tasks)
+  flowsint-beat:
+    image: flowsint/flowsint:latest
+    container_name: flowsint-beat
+    restart: unless-stopped
+    depends_on:
+      flowsint-redis:
+        condition: service_healthy
+    volumes:
+      - /srv/maria/cargo/volumes/flowsint/logs:/app/logs
+    environment:
+      - REDIS_URL=redis://flowsint-redis:6379/0
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - PYTHONUNBUFFERED=1
+    command: celery -A flowsint.celery beat --loglevel=info
+    networks:
+      - flowsint-net
+
+  # Flower - Celery Monitoring Dashboard (optional)
+  flowsint-flower:
+    image: mher/flower:2.0
+    container_name: flowsint-flower
+    restart: unless-stopped
+    depends_on:
+      - flowsint-redis
+      - flowsint-worker
+    ports:
+      - "${FLOWER_PORT:-5555}:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://flowsint-redis:6379/0
+      - FLOWER_PORT=5555
+      - FLOWER_BASIC_AUTH=${FLOWER_USER:-admin}:${FLOWER_PASSWORD}
+    networks:
+      - flowsint-net
+    command: celery --broker=redis://flowsint-redis:6379/0 flower --port=5555
+
+networks:
+  flowsint-net:
+    driver: bridge
+
+volumes:
+  flowsint-redis-data:
+    external: true
+    name: flowsint-redis-data
+  flowsint-neo4j-data:
+    external: true
+    name: flowsint-neo4j-data

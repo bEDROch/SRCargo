@@ -1,0 +1,48 @@
+services:
+  dio_db:
+    image: mariadb:11
+    container_name: dio_db
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DIO_DB_ROOT_PASS}
+      - MARIADB_DATABASE=${DIO_DB_NAME:-dio}
+      - MARIADB_USER=${DIO_DB_USER:-dio}
+      - MARIADB_PASSWORD=${DIO_DB_PASS}
+    ports:
+      - "${DIO_PORT_DB:-3306}:3306"
+    volumes:
+      - ${DIO_DATA}/db/mariadb:/var/lib/mysql
+    networks:
+      - dio_net
+      
+  dio_chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: dio_chroma
+    restart: unless-stopped
+    ports:
+      - "${DIO_PORT_CHROMA:-8000}:8000"
+    volumes:
+      - ${DIO_DATA}/db/chroma:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - ALLOW_RESET=FALSE
+    networks:
+      - dio_net
+
+  dio_mcp:
+    build:
+      context: /srv/maria/mcp-agent
+    container_name: dio_mcp
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - /srv/maria/mcp-agent:/app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
+    networks:
+      - dio_net
+
+networks:
+  dio_net:
+    driver: bridge
