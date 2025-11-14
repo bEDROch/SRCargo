@@ -1,0 +1,69 @@
+services:
+  # BookStack Application
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: bookstack
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Rome
+      - APP_URL=http://10.84.3.100:6875
+      - APP_KEY=${APP_KEY}
+      - DB_HOST=bookstack_db
+      - DB_PORT=3306
+      - DB_DATABASE=bookstackapp
+      - DB_USERNAME=bookstack
+      - DB_PASSWORD=${DB_PASSWORD:-bookstack_secure_pass_change_me}
+      # Email configuration (optional)
+      - MAIL_DRIVER=${MAIL_DRIVER:-smtp}
+      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_FROM=${MAIL_FROM:-noreply@bedro.ch}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-BookStack mAIn Docs}
+      # Authentication
+      - AUTH_METHOD=${AUTH_METHOD:-standard}
+      - APP_LANG=${APP_LANG:-en}
+    volumes:
+      - bookstack_config:/config
+      - bookstack_data:/data
+    ports:
+      - "6875:80"
+    restart: unless-stopped
+    depends_on:
+      - bookstack_db
+    networks:
+      - bookstack_net
+    mem_limit: 2g
+    mem_reservation: 512m
+
+  # MySQL Database for BookStack
+  bookstack_db:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: bookstack_db
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Rome
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_secure_pass_change_me}
+      - MYSQL_DATABASE=bookstackapp
+      - MYSQL_USER=bookstack
+      - MYSQL_PASSWORD=${DB_PASSWORD:-bookstack_secure_pass_change_me}
+    volumes:
+      - bookstack_db_data:/config
+    restart: unless-stopped
+    networks:
+      - bookstack_net
+    mem_limit: 1g
+    mem_reservation: 256m
+
+volumes:
+  bookstack_config:
+    driver: local
+  bookstack_data:
+    driver: local
+  bookstack_db_data:
+    driver: local
+
+networks:
+  bookstack_net:
+    driver: bridge
